@@ -19,6 +19,9 @@ public class SelectThreadPoolSockets  extends  SelectSockets{
     public static void main(String[] args) throws IOException {
         new SelectThreadPoolSockets().go();
     }
+    /*
+        当接收到客户端请求之后，从线程池中获取一个工作线程，然后从线程唤醒，交给当前的键对象对应的工作通道
+     */
     protected void readDataFromSocket(SelectionKey key) throws Exception
     {
         WorkerThread worker = pool.getWorker();
@@ -76,7 +79,7 @@ public class SelectThreadPoolSockets  extends  SelectSockets{
 
     /**
      * 线程工作类：
-     * 从Selector中获取就绪通道，执行响应
+     * 通过就绪通道，执行响应
      */
     private class WorkerThread extends Thread{
         private ByteBuffer buffer = ByteBuffer.allocate(1024);
