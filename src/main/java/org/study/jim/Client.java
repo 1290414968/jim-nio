@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class Client {
+    private volatile static int  c = 1;
     public static void main(String[] args) throws IOException {
         Socket s = new Socket("localhost", 1234);
 
