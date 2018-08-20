@@ -14,6 +14,7 @@ import org.study.jim.netty.catalina.servlets.MyServlet;
  */
 public class JimHandler extends ChannelInboundHandlerAdapter {
     private Logger LOG = Logger.getLogger(JimHandler.class);
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if(msg instanceof HttpRequest) {
@@ -24,7 +25,6 @@ public class JimHandler extends ChannelInboundHandlerAdapter {
             new MyServlet().doGet(jimRequest,jimResponse);
         }
     }
-
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         ctx.flush();
