@@ -1,16 +1,15 @@
 package org.study.jim.netty.chat.server;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import org.apache.log4j.Logger;
-import org.study.jim.netty.catalina.server.NettyTomcat;
 import org.study.jim.netty.chat.server.handler.HttpHandler;
+import org.study.jim.netty.chat.server.handler.WebSocketHandler;
 
 /**
  * @Auther: jim
@@ -29,7 +28,7 @@ public class ChatServer {
             ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap.group(bossGroup,workGroup)
                     .channel(NioServerSocketChannel.class)
-                    .option(ChannelOption.SO_BACKLOG,128)
+                    .option(ChannelOption.SO_BACKLOG,1024)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel client) throws Exception {
@@ -40,6 +39,9 @@ public class ChatServer {
                             pipeline.addLast(new HttpObjectAggregator(64 * 1024));
                             pipeline.addLast(new HttpHandler());
 
+                            //-----WebSocket 协议handler
+                            pipeline.addLast(new WebSocketServerProtocolHandler("/im"));
+                            pipeline.addLast(new WebSocketHandler());
                         }
                     });
             //绑定端口启动

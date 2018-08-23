@@ -1,12 +1,14 @@
 package org.study.jim.netty.chat.server.handler;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.net.URISyntaxException;
 import java.net.URL;
 public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+    private static Logger LOG = Logger.getLogger(HttpHandler.class);
     private URL baseURL = HttpHandler.class.getProtectionDomain().getCodeSource().getLocation();
     private final String WebRoot = "WebRoot";
     @Override
@@ -39,6 +41,10 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
                 future.addListener(ChannelFutureListener.CLOSE);
             }
             accessFile.close();
+        }else{
+            //这段文件异常处理很重要，否则会影响下一个websocket协议的处理逻辑
+            context.fireChannelRead(request.retain());
+            return;
         }
     }
     private File getFile(String pageName) throws URISyntaxException {
@@ -46,5 +52,15 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         path = !path.contains("file:") ? path : path.substring(5);
         path = path.replaceAll("//", "/");
         return new File(path);
+    }
+    //异常通道关闭
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
+            throws Exception {
+        Channel client = ctx.channel();
+        LOG.info("Client:"+client.remoteAddress()+"异常");
+        // 当出现异常就关闭连接
+        cause.printStackTrace();
+        ctx.close();
     }
 }
