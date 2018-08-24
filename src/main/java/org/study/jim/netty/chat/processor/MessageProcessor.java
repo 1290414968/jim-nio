@@ -153,4 +153,8 @@ public class MessageProcessor {
         }
         onlineUsers.remove(client);
     }
+
+    public void sendMsg(Channel channel, IMMessage msg) {
+        this.sendMessage(channel,encoder.encode(msg));
+    }
 }

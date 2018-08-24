@@ -8,7 +8,10 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import org.apache.log4j.Logger;
+import org.study.jim.netty.chat.protocol.IMDecoder;
+import org.study.jim.netty.chat.protocol.IMEncoder;
 import org.study.jim.netty.chat.server.handler.HttpHandler;
+import org.study.jim.netty.chat.server.handler.MySocketHandler;
 import org.study.jim.netty.chat.server.handler.WebSocketHandler;
 
 /**
@@ -33,6 +36,12 @@ public class ChatServer {
                         @Override
                         protected void initChannel(SocketChannel client) throws Exception {
                             ChannelPipeline pipeline =  client.pipeline();
+
+                            //---- 自定义协议
+                            pipeline.addLast(new IMDecoder());
+                            pipeline.addLast(new IMEncoder());
+                            pipeline.addLast(new MySocketHandler());
+
                             //---- Http 协议handler
                             pipeline.addLast(new HttpServerCodec());
                             //主要是将同一个http请求或响应的多个消息对象变成一个 fullHttpRequest完整的消息对象
