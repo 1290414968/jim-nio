@@ -9,6 +9,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
 
 public class EchoServer {
     private final int port;
@@ -21,10 +23,13 @@ public class EchoServer {
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(bossGroup,workerGroup).channel(NioServerSocketChannel.class)
                 .option(ChannelOption.SO_BACKLOG,1024)
-                .handler(new ChannelInitializer<SocketChannel>() {
+                .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
-                        socketChannel.pipeline().addLast("msgpack decoder",new MsgpackDecoder())
+                        socketChannel.pipeline()
+                                .addLast("frameDecoder",new LengthFieldBasedFrameDecoder(65535,0,2,0,2))
+                                .addLast("msgpack decoder",new MsgpackDecoder())
+                                .addLast("frameEncoder",new LengthFieldPrepender(2))
                                 .addLast("msgpack encoder",new MsgpackEncoder())
                                 .addLast(new EchoClientHandler());
                     }
@@ -36,9 +41,7 @@ public class EchoServer {
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
             System.out.println("server receive message :"+msg);
-            UserInfo userInfo = (UserInfo)msg;
-            ByteBuf resp =  Unpooled.copiedBuffer(userInfo.toString().getBytes());
-            ctx.writeAndFlush(resp);
+            ctx.writeAndFlush(msg);
         }
 
         @Override

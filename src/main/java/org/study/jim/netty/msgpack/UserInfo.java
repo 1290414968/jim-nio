@@ -1,5 +1,10 @@
 package org.study.jim.netty.msgpack;
-public class UserInfo {
+
+import org.msgpack.annotation.Message;
+
+import java.io.Serializable;
+@Message
+public class UserInfo implements Serializable {
     private String name;
     private int age;
 
